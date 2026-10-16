@@ -202,3 +202,298 @@ Example 205 - https://github.github.com/gfm/#example-205
       (pipe_table_row
         (pipe_table_cell)
         (pipe_table_cell)))))
+
+================================================================================
+#112 - Works with empty table cells
+================================================================================
+| foo | bar |
+| --- | --- |
+|| bim |
+| baz ||
+||
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (pipe_table
+      (pipe_table_header
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_delimiter_row
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_row
+        (pipe_table_cell)))))
+
+================================================================================
+#242 - Works with an empty cell between two others, header included
+================================================================================
+| a || c |
+| - | - | - |
+| 1 || 3 |
+|||
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (pipe_table
+      (pipe_table_header
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_delimiter_row
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)))))
+
+================================================================================
+#230 - Rows of whitespace cells stay rows of the table
+================================================================================
+|  | A1 |  |
+|--|----|--|
+|  |    |  |
+|  |    |  |
+| B1 |  | B3 |
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (pipe_table
+      (pipe_table_header
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_delimiter_row
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell)))))
+
+================================================================================
+A delimiter row with an empty cell is not a table
+================================================================================
+|| a |
+|| - |
+
+| a | b |
+| - | |
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (paragraph
+      (inline))
+    (paragraph
+      (inline))))
+
+================================================================================
+A delimiter cell is hyphens, a colon alone is not one
+================================================================================
+| a | b |
+|:-:|:|
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (paragraph
+      (inline))))
+
+================================================================================
+An indented table with empty cells
+================================================================================
+  | a || c |
+  | - | - | - |
+   || 2 ||
+ | 1 | 2 | 3 |
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (pipe_table
+      (pipe_table_header
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_delimiter_row
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell)))))
+
+================================================================================
+A table without outer pipes with empty cells
+================================================================================
+a || c
+- | - | -
+1 || 3
+|| 2 |
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (pipe_table
+      (pipe_table_header
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_delimiter_row
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)))))
+
+================================================================================
+A one-column table with an empty header and empty rows
+================================================================================
+||
+|-|
+| x |
+||
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (pipe_table
+      (pipe_table_header
+        (pipe_table_cell))
+      (pipe_table_delimiter_row
+        (pipe_table_delimiter_cell))
+      (pipe_table_row
+        (pipe_table_cell))
+      (pipe_table_row
+        (pipe_table_cell)))))
+
+================================================================================
+Escaped pipes beside empty cells
+================================================================================
+| a \| b || c |
+| - | - | - |
+|| \| | x \||
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (pipe_table
+      (pipe_table_header
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_delimiter_row
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell))
+      (pipe_table_row
+        (pipe_table_cell)
+        (pipe_table_cell)
+        (pipe_table_cell)))))
+
+================================================================================
+Empty cells in a table inside a block quote and a list item
+================================================================================
+> || b |
+> | - | - |
+> | 1 ||
+
+- | a || c |
+  | - | - | - |
+  || 2 ||
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (block_quote
+      (block_quote_marker)
+      (pipe_table
+        (pipe_table_header
+          (pipe_table_cell)
+          (pipe_table_cell))
+        (block_continuation)
+        (pipe_table_delimiter_row
+          (pipe_table_delimiter_cell)
+          (pipe_table_delimiter_cell))
+        (block_continuation)
+        (pipe_table_row
+          (pipe_table_cell)
+          (pipe_table_cell))))
+    (list
+      (list_item
+        (list_marker_minus)
+        (pipe_table
+          (pipe_table_header
+            (pipe_table_cell)
+            (pipe_table_cell)
+            (pipe_table_cell))
+          (block_continuation)
+          (pipe_table_delimiter_row
+            (pipe_table_delimiter_cell)
+            (pipe_table_delimiter_cell)
+            (pipe_table_delimiter_cell))
+          (block_continuation)
+          (pipe_table_row
+            (pipe_table_cell)
+            (pipe_table_cell)
+            (pipe_table_cell)))))))
+
+================================================================================
+A delimiter row may end the input, with trailing whitespace
+================================================================================
+| a | b |
+|---|---|  
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (pipe_table
+      (pipe_table_header
+        (pipe_table_cell)
+        (pipe_table_cell))
+      (pipe_table_delimiter_row
+        (pipe_table_delimiter_cell)
+        (pipe_table_delimiter_cell)))))

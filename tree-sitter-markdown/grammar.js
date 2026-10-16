@@ -444,35 +444,37 @@ module.exports = grammar({
                 optional(alias(':', $.pipe_table_align_right)),
             ),
 
-            pipe_table_row: $ => seq(
-                optional(seq(
-                    optional($._whitespace),
-                    '|',
-                )),
-                choice(
-                    seq(
-                        repeat1(prec.right(seq(
-                            choice(
-                                seq(
-                                    optional($._whitespace),
-                                    $.pipe_table_cell,
-                                    optional($._whitespace)
-                                ),
-                                alias($._whitespace, $.pipe_table_cell)
-                            ),
-                            '|',
-                        ))),
-                        optional($._whitespace),
-                        optional(seq(
-                            $.pipe_table_cell,
-                            optional($._whitespace)
-                        )),
+            // A row is cells separated by `|`, with optional pipes at both ends. A cell right after
+            // a `|` may be empty (`||`): `$._pipe_table_empty_cell` is a zero width token that is only
+            // valid there, so a row's leading pipe never starts with one, however far it is indented.
+            pipe_table_row: $ => choice(
+                seq(
+                    choice(
+                        seq(optional($._whitespace), '|'),
+                        seq(optional($._whitespace), $.pipe_table_cell, optional($._whitespace), '|'),
                     ),
-                    seq(
-                        optional($._whitespace),
+                    repeat(prec.right(seq(
+                        choice(
+                            seq(
+                                optional($._whitespace),
+                                $.pipe_table_cell,
+                                optional($._whitespace)
+                            ),
+                            alias($._whitespace, $.pipe_table_cell),
+                            alias($._pipe_table_empty_cell, $.pipe_table_cell),
+                        ),
+                        '|',
+                    ))),
+                    optional($._whitespace),
+                    optional(seq(
                         $.pipe_table_cell,
                         optional($._whitespace)
-                    )
+                    )),
+                ),
+                seq(
+                    optional($._whitespace),
+                    $.pipe_table_cell,
+                    optional($._whitespace)
                 ),
             ),
 
@@ -580,6 +582,7 @@ module.exports = grammar({
 
         $._pipe_table_start,
         $._pipe_table_line_ending,
+        $._pipe_table_empty_cell,
     ],
     precedences: $ => [
         [$._setext_heading1, $._block],

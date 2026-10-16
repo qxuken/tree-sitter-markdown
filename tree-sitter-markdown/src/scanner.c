@@ -53,6 +53,7 @@ typedef enum {
     PLUS_METADATA,
     PIPE_TABLE_START,
     PIPE_TABLE_LINE_ENDING,
+    PIPE_TABLE_EMPTY_CELL,
 
     NUM_TOKEN_TYPES,
 } TokenType;
@@ -175,6 +176,7 @@ static const bool paragraph_interrupt_symbols[NUM_TOKEN_TYPES] = {
     false, // PLUS_METADATA,
     true,  // PIPE_TABLE_START,
     false, // PIPE_TABLE_LINE_ENDING,
+    false, // PIPE_TABLE_EMPTY_CELL,
 };
 
 // Whether the token opens a new block, i.e. pushes onto `open_blocks`.
@@ -1326,7 +1328,9 @@ static bool parse_pipe_table(Scanner *s, TSLexer *lexer,
         }
     }
 
-    // check if delimiter row has the same number of cells and at least one pipe
+    // check if the delimiter row has the same number of cells. Every one of
+    // them is hyphens with an optional colon at either end, so an empty cell
+    // (`||` or `| |`) means this is not a table.
     size_t delimiter_cell_count = 0;
     if (lexer->lookahead == '|') {
         advance(s, lexer);
@@ -1335,46 +1339,38 @@ static bool parse_pipe_table(Scanner *s, TSLexer *lexer,
         while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
             advance(s, lexer);
         }
-        if (lexer->lookahead == '|') {
-            delimiter_cell_count++;
-            advance(s, lexer);
-            continue;
+        // the end of the row, right after a pipe (or an empty row)
+        if (lexer->lookahead == '\r' || lexer->lookahead == '\n' ||
+            lexer->eof(lexer)) {
+            break;
         }
         if (lexer->lookahead == ':') {
             advance(s, lexer);
-            if (lexer->lookahead != '-') {
-                return false;
-            }
         }
         bool had_one_minus = false;
         while (lexer->lookahead == '-') {
             had_one_minus = true;
             advance(s, lexer);
         }
-        if (had_one_minus) {
-            delimiter_cell_count++;
+        if (!had_one_minus) {
+            return false;
         }
+        delimiter_cell_count++;
         if (lexer->lookahead == ':') {
-            if (!had_one_minus) {
-                return false;
-            }
             advance(s, lexer);
         }
         while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
             advance(s, lexer);
         }
         if (lexer->lookahead == '|') {
-            if (!had_one_minus) {
-                delimiter_cell_count++;
-            }
             advance(s, lexer);
             continue;
         }
-        if (lexer->lookahead != '\r' && lexer->lookahead != '\n') {
-            return false;
-        } else {
+        if (lexer->lookahead == '\r' || lexer->lookahead == '\n' ||
+            lexer->eof(lexer)) {
             break;
         }
+        return false;
     }
     // if the cell counts are not equal then this is not a table
     if (cell_count != delimiter_cell_count) {
@@ -1405,6 +1401,15 @@ static bool scan(Scanner *s, TSLexer *lexer, const bool *valid_symbols) {
     if (valid_symbols[CLOSE_BLOCK]) {
         s->state |= STATE_CLOSE_BLOCK;
         lexer->result_symbol = CLOSE_BLOCK;
+        return true;
+    }
+
+    // An empty pipe table cell, as in `||`. The grammar only asks for one
+    // right after a `|`, so a `|` coming next is all it takes. It is zero
+    // width: the `|` is the separator after it.
+    if (valid_symbols[PIPE_TABLE_EMPTY_CELL] && lexer->lookahead == '|') {
+        mark_end(s, lexer);
+        lexer->result_symbol = PIPE_TABLE_EMPTY_CELL;
         return true;
     }
 
