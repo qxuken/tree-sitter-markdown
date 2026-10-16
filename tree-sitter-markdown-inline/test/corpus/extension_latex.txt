@@ -73,3 +73,12 @@ $Hello\$th*er*e$
     (latex_span_delimiter)
     (backslash_escape)
     (latex_span_delimiter)))
+================================================================================
+A longer dollar run inside a LaTeX span does not close it
+================================================================================
+$a $$ *b* $
+--------------------------------------------------------------------------------
+(inline
+  (latex_block
+    (latex_span_delimiter)
+    (latex_span_delimiter)))
